@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crypton - Encrypt & Decrypt</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "crypto-utils": "./crypto-utils.js"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Crypton</h1>
+            <p>Privacy-first encryption</p>
+            <p class="author">Created by Sayon</p>
+        </header>
+
+        <main>
+            <div class="input-group">
+                <div class="label-row">
+                    <label for="password">Secret Key</label>
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="use-default-key">
+                        <label for="use-default-key" class="checkbox-label">Use Default</label>
+                    </div>
+                </div>
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Enter your password..." autocomplete="off">
+                    <button type="button" id="toggle-password" class="icon-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-group flex-grow">
+                <label for="text-input">Message</label>
+                <textarea id="text-input" placeholder="Type or paste your message here..."></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button id="encrypt-btn" class="primary">Encrypt</button>
+                <button id="decrypt-btn" class="secondary">Decrypt</button>
+            </div>
+
+            <div id="output-container" class="hidden">
+                <label>Result</label>
+                <div class="output-wrapper">
+                    <pre id="output-text"></pre>
+                    <button id="copy-btn" class="icon-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
