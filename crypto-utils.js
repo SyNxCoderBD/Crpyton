@@ -34,19 +34,26 @@ async function deriveKey(password, salt) {
 }
 
 /**
- * Encrypts plaintext using a password.
+ * Encrypts data (string or Uint8Array) using a password.
  * Returns a Base64 string containing salt + iv + ciphertext.
  */
-export async function encrypt(plaintext, password) {
-    const encoder = new TextEncoder();
+export async function encrypt(data, password) {
     const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
     const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
     
     const key = await deriveKey(password, salt);
+    
+    let encodedData;
+    if (data instanceof Uint8Array) {
+        encodedData = data;
+    } else {
+        encodedData = new TextEncoder().encode(data);
+    }
+
     const encryptedContent = await crypto.subtle.encrypt(
         { name: 'AES-GCM', iv },
         key,
-        encoder.encode(plaintext)
+        encodedData
     );
 
     const encryptedContentArr = new Uint8Array(encryptedContent);
@@ -55,15 +62,23 @@ export async function encrypt(plaintext, password) {
     result.set(iv, salt.length);
     result.set(encryptedContentArr, salt.length + iv.length);
 
-    return btoa(String.fromCharCode(...result));
+    // Efficiently convert Uint8Array to Base64 using chunks to avoid stack limits
+    const chunks = [];
+    const chunk = 16384;
+    for (let i = 0; i < result.length; i += chunk) {
+        chunks.push(String.fromCharCode.apply(null, result.subarray(i, i + chunk)));
+    }
+    return btoa(chunks.join(''));
 }
 
 /**
  * Decrypts a Base64 string using a password.
+ * Returns the decrypted content as a Uint8Array.
  */
 export async function decrypt(base64Data, password) {
     try {
-        const binaryString = atob(base64Data);
+        const cleanedData = base64Data.replace(/[^A-Za-z0-9+/=]/g, '');
+        const binaryString = atob(cleanedData);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
             bytes[i] = binaryString.charCodeAt(i);
@@ -73,6 +88,8 @@ export async function decrypt(base64Data, password) {
         const iv = bytes.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
         const ciphertext = bytes.slice(SALT_LENGTH + IV_LENGTH);
 
+        if (ciphertext.length === 0) throw new Error('Data is too short');
+
         const key = await deriveKey(password, salt);
         const decryptedContent = await crypto.subtle.decrypt(
             { name: 'AES-GCM', iv },
@@ -80,8 +97,9 @@ export async function decrypt(base64Data, password) {
             ciphertext
         );
 
-        return new TextDecoder().decode(decryptedContent);
+        return new Uint8Array(decryptedContent);
     } catch (e) {
+        console.error('Decryption internal error:', e);
         throw new Error('Decryption failed. Invalid key or corrupted data.');
     }
 }
